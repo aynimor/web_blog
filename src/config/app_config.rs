@@ -40,12 +40,12 @@ pub struct ApplicationConfig {
 ///默认配置
 impl ApplicationConfig {
     pub fn new(config_path: &str) -> Self {
-        println!("[abs_admin] load config: {}",config_path);
+        println!("[abs_admin] load config: {}", config_path);
         let f = std::fs::File::open(config_path).expect("load config file fail");
         //读取配置
-        let result:ApplicationConfig = serde_yaml::from_reader(f).expect("fail load from file");
+        let result: ApplicationConfig = serde_yaml::from_reader(f).expect("fail load from file");
         if result.debug {
-            println!("[abs_admin] load config: {:?}",result);
+            println!("[abs_admin] load config: {:?}", result);
             println!("[abs_admin] ///////////////////// Start On Debug Mode ////////////////////////////");
         } else {
             println!("[abs_admin] release_mode is enable!")

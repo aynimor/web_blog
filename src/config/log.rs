@@ -1,22 +1,22 @@
+use std::time::Duration;
+use std::result::Result;
 use fast_log::consts::LogSize;
 use fast_log::plugin::file_split::{Packer, RollingType};
 use fast_log::plugin::packer::{ZipPacker, LogPacker};
-use std::time::Duration;
 use crate::service::ServiceContext;
-use std::result::Result;
 
 pub fn init_log(context: &ServiceContext) -> Result<(), Box<dyn std::error::Error>> {
     //create log dir
-    std::fs::create_dir_all(&context.config.log_dir)?;
+    std::fs::create_dir_all(context.config.log_dir.as_str())?;
     //init fast log
     fast_log::init_split_log(
-        &context.config.log_dir,
+        context.config.log_dir.as_str(),
         context.config.log_cup as usize,
-        str_to_temp_size(&context.config.log_temp_size),
-        str_to_rolling(&context.config.log_rolling_type),
-        str_to_log_level(&context.config.log_level),
+        str_to_temp_size(context.config.log_temp_size.as_str()),
+        str_to_rolling(context.config.log_rolling_type.as_str()),
+        str_to_log_level(context.config.log_level.as_str()),
         None,
-        choose_packer(&context.config.log_pack_compress),
+        choose_packer(context.config.log_pack_compress.as_str()),
         context.config.debug,
     )?;
     if context.config.debug == false {
