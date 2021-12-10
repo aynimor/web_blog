@@ -1,5 +1,6 @@
-use actix_web::{Responder, HttpResponse};
+use actix_web::{HttpResponse};
+use crate::error::{Result, ErrorResponse};
 
-pub async fn create_user() -> impl Responder {
-    HttpResponse::Ok().body("Hello World".to_string())
+pub async fn create_user() -> Result<HttpResponse> {
+    Err(ErrorResponse::InternalServerError)
 }

@@ -1,13 +1,15 @@
 use std::time::Duration;
-use std::result::Result;
 use fast_log::consts::LogSize;
 use fast_log::plugin::file_split::{Packer, RollingType};
 use fast_log::plugin::packer::{ZipPacker, LogPacker};
 use crate::service::ServiceContext;
 
-pub fn init_log(context: &ServiceContext) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_log(context: &ServiceContext) {
     //create log dir
-    std::fs::create_dir_all(context.config.log_dir.as_str())?;
+    std::fs::create_dir_all(context.config.log_dir.as_str()).expect("Create log dir error");
+    if context.config.debug == false {
+        println!("[abs_admin] release_mode is up! [file_log] open,[console_log] disabled!");
+    }
     //init fast log
     fast_log::init_split_log(
         context.config.log_dir.as_str(),
@@ -18,11 +20,7 @@ pub fn init_log(context: &ServiceContext) -> Result<(), Box<dyn std::error::Erro
         None,
         choose_packer(context.config.log_pack_compress.as_str()),
         context.config.debug,
-    )?;
-    if context.config.debug == false {
-        println!("[abs_admin] release_mode is up! [file_log] open,[console_log] disabled!");
-    }
-    Ok(())
+    ).expect("Init log config error");
 }
 
 fn choose_packer(packer: &str) -> Box<dyn Packer> {

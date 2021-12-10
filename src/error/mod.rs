@@ -1,64 +1,104 @@
-use std::{error::Error as StdError, fmt::{Display, self}};
+#[warn(dead_code)]
+use std::fmt::{Display, Result as fmtResult};
 
-pub type Result<T> = std::result::Result<T, Error>;
+use crate::domain::vo::RespVO;
+use actix_http::{http::StatusCode, http::header};
+use actix_web::{HttpResponse, ResponseError, body::AnyBody};
+
+pub type Result<T> = actix_web::Result<T, ErrorResponse>;
 
 #[derive(Debug)]
-pub enum Error {
-    /// Default Error
-    E(u64, String),
+pub enum ErrorResponse {
+    BadRequest,
+    Unauthorized,
+    PaymentRequired,
+    Forbidden,
+    NotFound,
+    MethodNotAllowed,
+    NotAcceptable,
+    RequestTimeout,
+    PayloadTooLarge,
+    UnsupportedMediaType,
+    Locked,
+    TooManyRequests,
+    InternalServerError,
+    CustomError(i64, String),
 }
 
 
-pub trait CustomFrom<T>: Sized {
-    /// Performs the conversion.
-    fn from_res(_: u64, _: T) -> Self;
+impl Display for ErrorResponse {
+    fn fmt(&self, _: &mut std::fmt::Formatter<'_>) -> fmtResult {
+        Ok(())
+    }
 }
 
-
-impl Display for Error {
-    // IntellijRust does not understand that [non_exhaustive] applies only for downstream crates
-    // noinspection RsMatchCheck
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ResponseError for ErrorResponse {
+    fn error_response(&self) -> HttpResponse {
+        let mut resp: RespVO<String> = RespVO::new();
         match self {
-            Error::E(code, error) => write!(f, "{} {}", code, error),
+            ErrorResponse::BadRequest => {
+                resp.code = Some(400);
+                resp.msg = Some("Invalid Parameter!".to_string());
+            },
+            ErrorResponse::Unauthorized => {
+                resp.code = Some(401);
+                resp.msg = Some("Unauthorized!".to_string());
+            },
+            ErrorResponse::PaymentRequired => {
+                resp.code = Some(402);
+                resp.msg = Some("Payment Required!".to_string());
+            },
+            ErrorResponse::Forbidden => {
+                resp.code = Some(403);
+                resp.msg = Some("Forbidden!".to_string());
+            },
+            ErrorResponse::NotFound => {
+                resp.code = Some(404);
+                resp.msg = Some("404 Not Found!".to_string());
+            },
+            ErrorResponse::MethodNotAllowed => {
+                resp.code = Some(405);
+                resp.msg = Some("Method Not Allowed!".to_string());
+            },
+            ErrorResponse::NotAcceptable => {
+                resp.code = Some(406);
+                resp.msg = Some("Not Acceptable!".to_string());
+            },
+            ErrorResponse::RequestTimeout => {
+                resp.code = Some(408);
+                resp.msg = Some("Request Timeout!".to_string());
+            },
+            ErrorResponse::PayloadTooLarge => {
+                resp.code = Some(413);
+                resp.msg = Some("Payload TooLarge!".to_string());
+            },
+            ErrorResponse::UnsupportedMediaType => {
+                resp.code = Some(415);
+                resp.msg = Some("Unsupported Media Type!".to_string());
+            },
+            ErrorResponse::Locked => {
+                resp.code = Some(423);
+                resp.msg = Some("Locked!".to_string());
+            },
+            ErrorResponse::TooManyRequests => {
+                resp.code = Some(429);
+                resp.msg = Some("TooMany Requests!".to_string());
+            },
+            ErrorResponse::InternalServerError => {
+                resp.code = Some(500);
+                resp.msg = Some("Internal Server Error!".to_string());
+            }
+            ErrorResponse::CustomError(code, msg) => {
+                resp.code = Some(code.to_owned());
+                resp.msg = Some(msg.to_owned());
+            }
         }
-    }
-}
-
-impl StdError for Error {}
-
-impl CustomFrom<String> for Error {
-    fn from_res(code: u64, arg: String) -> Self {
-        Error::E(code, arg)
-    }
-}
-
-impl CustomFrom<&str> for Error {
-    fn from_res(code: u64, arg: &str) -> Self {
-        Error::E(code, arg.to_string())
-    }
-}
-
-impl CustomFrom<&dyn std::error::Error> for Error {
-    fn from_res(code: u64, arg: &dyn std::error::Error) -> Self {
-        return Error::E(code, arg.to_string());
-    }
-}
-
-impl From<Error> for std::io::Error {
-    fn from(arg: Error) -> Self {
-        arg.into()
-    }
-}
-
-impl CustomFrom<rbatis::core::Error> for Error {
-    fn from_res(code: u64, arg: rbatis::core::Error) -> Self {
-        Error::E(code, arg.to_string())
-    }
-}
-
-impl CustomFrom<actix_web::error::Error> for Error {
-    fn from_res(code: u64, arg: actix_web::error::Error) -> Self {
-        Error::E(code, arg.to_string())
+        let resp = resp.to_string();
+        let mut res = HttpResponse::new(StatusCode::OK);
+        res.headers_mut().insert(
+            header::CONTENT_TYPE, 
+            header::HeaderValue::from_static("application/json; charset=utf-8"),    
+        );
+        res.set_body(AnyBody::from(resp))
     }
 }

@@ -1,0 +1,17 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://github.com/rbatis/rbatis_sql/raw/main/mybatis-3-mapper.dtd">
+<mapper>
+    <!-- <sql id="select_self">(id)</sql> -->
+    <select id="find_by_account">
+        select * from user where
+        <if test="account != ''">
+            account = #{account}
+        </if>
+    </select>
+
+    <insert id="create_user">
+        INSERT INTO user () VALUES
+        <foreach collection="arg" index="key" item="item" open="(" close=")" separator=",">
+            ${item.account}, ${item.nickname}, ${item.sign}, ${item.password}
+        </foreach>
+    </insert>
+</mapper>

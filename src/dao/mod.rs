@@ -4,7 +4,6 @@ use rbatis::rbatis::Rbatis;
 use crate::config::app_config::ApplicationConfig;
 
 pub mod mapper;
-pub mod user;
 
 pub async fn init_rbatis(config: &ApplicationConfig) -> Rbatis {
     let mut rbatis = Rbatis::new();
